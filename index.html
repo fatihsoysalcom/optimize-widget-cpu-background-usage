@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CPU Throttling Widget</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .widget-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 300px;
+        }
+        h1 { color: #333; }
+        p { color: #555; }
+        #counter { font-size: 3em; font-weight: bold; margin: 20px 0; color: #007bff; }
+        #status { font-style: italic; color: #666; margin-bottom: 15px; }
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="widget-container">
+        <h1>Game Widget</h1>
+        <p>This widget simulates background CPU usage.</p>
+        <div id="counter">0</div>
+        <div id="status">Status: Active</div>
+        <div class="spinner" id="widgetSpinner"></div>
+    </div>
+
+    <script>
+        let counter = 0;
+        let animationFrameId = null;
+        let intervalId = null;
+        const counterElement = document.getElementById('counter');
+        const statusElement = document.getElementById('status');
+        const spinnerElement = document.getElementById('widgetSpinner');
+
+        // Function to simulate CPU-intensive work (e.g., game logic, rendering updates)
+        function updateWidget() {
+            counter++;
+            counterElement.textContent = counter;
+            // In a real widget, this would involve complex calculations, DOM manipulations, etc.
+        }
+
+        // Starts high-frequency updates using requestAnimationFrame (active mode)
+        function startActiveMode() {
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+            }
+            if (intervalId) {
+                clearInterval(intervalId);
+            }
+
+            statusElement.textContent = 'Status: Active (High CPU simulation)';
+            spinnerElement.style.animationDuration = '0.5s'; // Faster spin indicates more work
+            const animate = () => {
+                updateWidget(); // Simulate work every browser frame
+                animationFrameId = requestAnimationFrame(animate);
+            };
+            animationFrameId = requestAnimationFrame(animate);
+        }
+
+        // Starts low-frequency updates using setInterval (throttled mode)
+        function startThrottledMode() {
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+            }
+            if (intervalId) {
+                clearInterval(intervalId);
+            }
+
+            statusElement.textContent = 'Status: Throttled (Low CPU simulation)';
+            spinnerElement.style.animationDuration = '2s'; // Slower spin indicates less work
+            // ARTICLE CONCEPT: Reduce update frequency when in the background
+            intervalId = setInterval(() => {
+                updateWidget(); // Still does some work, but much less frequently (e.g., every 1 second)
+            }, 1000); // Throttled updates every 1 second
+        }
+
+        // Event listener for tab visibility changes
+        document.addEventListener('visibilitychange', () => {
+            // ARTICLE CONCEPT: Detect when the browser tab is hidden (in background)
+            if (document.hidden) {
+                startThrottledMode();
+            } else {
+                // ARTICLE CONCEPT: Resume full activity when tab becomes active
+                startActiveMode();
+            }
+        });
+
+        // Initial setup based on current visibility
+        if (document.hidden) {
+            startThrottledMode();
+        } else {
+            startActiveMode();
+        }
+    </script>
+</body>
+</html>
